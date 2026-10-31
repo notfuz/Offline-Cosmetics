@@ -1,6 +1,6 @@
 // The root project name has to match the addon namespace (see addonInfo in build.gradle.kts),
 // otherwise the mixins are not applied outside of the development environment.
-rootProject.name = "xqedii"
+rootProject.name = "offlinecosmetics"
 
 pluginManagement {
     repositories {
