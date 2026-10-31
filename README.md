@@ -1,8 +1,5 @@
 # LabyMod Offline Cosmetics
 
-[![Upstream Release](https://img.shields.io/github/v/release/Xqedii/Offline-Cosmetics)](https://github.com/Xqedii/Offline-Cosmetics/releases/latest)
-[![Discord](https://img.shields.io/badge/Discord-Join-7289DA?logo=discord&logoColor=white)](https://discord.com/invite/6JQfeQEB4W)
-
 **Restores LabyMod cosmetics and premium skins on offline-mode servers.**
 
 LabyMod Offline Cosmetics is an unofficial client-side addon that restores the visibility of LabyMod cosmetics, premium skins and capes when playing on offline-mode (cracked) servers.
@@ -15,12 +12,10 @@ The addon works by mapping your offline session UUID to your Premium Minecraft U
 
 ## Features
 
-- Restore LabyMod cosmetics on offline-mode servers.
+- Restore LabyMod cosmetics and emotes.
 - Restore premium Minecraft skins.
 - Restore capes.
 - Automatically map your offline player profile to your Premium Minecraft profile.
-- Configure which features are enabled through the addon settings.
-- Supports multiple Minecraft versions through version-specific implementations.
 
 ## Supported Minecraft Versions
 
@@ -29,13 +24,6 @@ The addon works by mapping your offline session UUID to your Premium Minecraft U
 | 1.8.9 – 1.21.8 | Supported, with listed exceptions |
 | 26.1 - 26.3 | Supported |
 | 1.21.9 - 1.21.11 | Still thinking if support is really needed |
-
-**Known limitations:**
-
-- Minecraft 1.21.10 and 1.21.11 are not supported.
-- Minecraft 1.20.2 and 1.20.5 are not currently built because they are not listed in the supported versions of the current LabyGradle configuration.
-
-Version support depends on the corresponding implementation being included in the addon build.
 
 ## Installation
 
