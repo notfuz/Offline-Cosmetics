@@ -13,10 +13,17 @@ An unofficial LabyMod addon that client-side restores cosmetics, skins, and cape
 # Installation
 
 To install the addon, simply build the JAR file or download the latest version from the Releases, then place it in the Addons folder in LabyMod.
-The addon works with any version from 1.8 to 1.21.8.
+The addon works with Minecraft 1.8.9 through 1.21.8 and with 26.1, 26.1.1, 26.1.2 and 26.3.
 
 > [!IMPORTANT]
-> Currently, versions 1.21.10 and 1.21.11 are not supported
+> Versions 1.21.10 and 1.21.11 are not supported.
+> Versions 1.20.2 and 1.20.5 are no longer built, because the current LabyGradle does not list them.
+
+### How it works on 26.1+
+
+Since Minecraft 1.21.9 `GameProfile` is a record, so the cracked UUID can no longer be replaced on the existing object.
+On 26.1+ the addon swaps the profile for a new one with the premium UUID whenever a player or tab list entry is created for you, and
+loads your premium skin from Mojang in the background. The code for this lives in `game-runner/src/v26_*`.
 
 -----
 
@@ -34,4 +41,7 @@ Additionally, you can choose whether the addon should load only cosmetics, only 
 After cloning the repository, you can build the project with Gradle using `./gradlew build`.
 The .jar file will appear in `build/libs`
 
-You need JDK 17 or newer to build the project.
+You need JDK 25 to build the project, because Minecraft 26.1+ runs on Java 25.
+
+The `.github/workflows/build.yml` workflow does the same on every push and pull request and uploads the release jar as an artifact.
+Pushing a tag like `v1.1.0` also publishes a GitHub release with the jar attached, using the tag as the addon version.

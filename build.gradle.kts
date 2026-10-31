@@ -15,6 +15,8 @@ labyMod {
         registerVersion(versions.toTypedArray()) {
             runs {
                 getByName("client") {
+                    // When the property is set to true, you can log in with a Minecraft account
+                    // devLogin = true
                 }
             }
         }
@@ -36,4 +38,12 @@ subprojects {
 
     group = rootProject.group
     version = rootProject.version
+
+    // The version modules compile against the Java version their Minecraft version runs on
+    // (Java 25 for 26.1+), so the shared modules have to stay on the oldest one instead of
+    // following the build JDK.
+    extensions.findByType(JavaPluginExtension::class.java)?.apply {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
 }
