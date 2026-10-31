@@ -194,6 +194,8 @@ All credit for the original project and its foundational implementation belongs 
 
 Please visit the original repository to support the original author and view the upstream project.
 
+**Xqedii** is very aware that this repository exists! I have dm'ed him personally to know if its ok to continue his work!
+
 ---
 
 ## Disclaimer
