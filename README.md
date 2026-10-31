@@ -1,112 +1,180 @@
+ <div align="center">
+
+<img src="core/src/main/resources/assets/offlinecosmetics/icon.png" width="128" height="128" alt="LabyMod Offline Cosmetics">
+
 # LabyMod Offline Cosmetics
 
-**Restores LabyMod cosmetics and premium skins on offline-mode servers.**
+**Bring your LabyMod experience back to offline-mode servers.**
 
-LabyMod Offline Cosmetics is an unofficial client-side addon that restores the visibility of LabyMod cosmetics, premium skins and capes when playing on offline-mode (cracked) servers.
+Restore cosmetics, emotes, premium Minecraft skins and capes, even when playing without online-mode authentication.
 
-The addon works by mapping your offline session UUID to your Premium Minecraft UUID and retrieving the associated skin information from Mojang.
+[![Latest Release](https://img.shields.io/github/v/release/notfuz/Offline-Cosmetics?style=for-the-badge&color=5865F2&label=LATEST%20RELEASE)](../../releases/latest)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/notfuz/Offline-Cosmetics/build.yml?branch=main&style=for-the-badge&label=BUILD)](../../actions/workflows/build.yml)
+[![GitHub Downloads](https://img.shields.io/github/downloads/notfuz/Offline-Cosmetics/total?style=for-the-badge&color=2ea44f&label=DOWNLOADS)](../../releases)
+[![GitHub Stars](https://img.shields.io/github/stars/notfuz/Offline-Cosmetics?style=for-the-badge&color=yellow)](../../stargazers)
 
-<img width="1121" height="599" alt="Offline Cosmetics in-game screenshot" src="https://github.com/user-attachments/assets/0316f5e6-05bd-4d94-9744-12e1c67c5853" />
+<br>
+
+<img width="900" alt="Offline Cosmetics in-game screenshot" src="https://github.com/user-attachments/assets/0316f5e6-05bd-4d94-9744-12e1c67c5853">
+
+<br>
+
+*An unofficial client-side LabyMod addon focused on restoring the features you would normally lose on offline-mode servers.*
+
+</div>
 
 ---
 
-## Features
+## ✨ Features
 
-- Restore LabyMod cosmetics and emotes.
-- Restore premium Minecraft skins.
-- Restore capes.
-- Automatically map your offline player profile to your Premium Minecraft profile.
+Offline Cosmetics bridges the gap between offline-mode Minecraft servers and your authenticated Minecraft profile, bringing back features that would otherwise be unavailable.
 
-## Supported Minecraft Versions
+| Feature | Description |
+|:---|:---|
+| **Cosmetics & Emotes** | Restore the visibility of LabyMod cosmetics and custom emotes. |
+| **Premium Skins** | Retrieve your authentic Minecraft account skin through Mojang's APIs. |
+| **Cape Rendering** | Restore premium account capes through the custom game profile wrapper. |
+| **Profile Mapping** | Automatically associate your offline player profile with your authenticated Minecraft profile. |
+| **Independent Settings** | Enable or disable cosmetics and skin restoration individually. |
+| **Multi-Version Support** | Compatibility implementations covering a wide range of Minecraft versions. |
 
-| Minecraft version | Support |
-|---|---|
-| 1.8.9 – 1.21.8 | Supported, with listed exceptions |
-| 26.1 - 26.3 | Supported |
-| 1.21.9 - 1.21.11 | Still thinking if support is really needed |
+## 🎮 Minecraft Compatibility
 
-## Installation
+Offline Cosmetics maintains compatibility across multiple Minecraft generations, including older legacy versions and newer releases.
 
-1. Download the latest release from the [Releases page](../../releases/latest).
+| Minecraft Version | Compatibility |
+|:---|:---:|
+| **1.8.9 – 1.21.8** | ✅ Supported, with listed exceptions |
+| **1.21.9 – 1.21.11** | ⏳ Support under consideration |
+| **26.1 – 26.3** | ✅ Supported |
+
+> [!NOTE]
+> Compatibility can vary between individual Minecraft versions. Check the project's releases and issue tracker for known limitations and version-specific information.
+
+---
+
+## 📥 Installation
+
+Getting started is simple. You only need the compiled production addon and an existing LabyMod installation.
+
+1. Head over to the [**latest GitHub release**](../../releases/latest).
 2. Download `OfflineCosmeticsLabyMod-release.jar`.
-3. Open your LabyMod installation's `addons` folder.
-4. Place the downloaded JAR inside the folder.
-5. Restart LabyMod.
+3. Locate your Minecraft/LabyMod installation directory.
+4. Open the `addons` folder.
+5. Place the downloaded JAR inside the folder.
+6. Restart your Minecraft client.
 
-Only the production release JAR should be installed. Intermediate build files are not intended for use in the production client.
+<details>
+<summary><strong>⚠️ Important installation information</strong></summary>
 
-## How It Works
+Only install the production release JAR ending in `-release.jar`.
 
-### Profile and UUID mapping
+The repository generates several intermediate build files, including `api`, `core`, `game-runner` and development artifacts. These are not standalone addons and will not work when installed directly.
 
-Offline-mode servers generate player UUIDs independently of Mojang's authenticated account system.
+Make sure you download:
 
-This prevents LabyMod from automatically associating your offline player profile with your Premium Minecraft account.
+`OfflineCosmeticsLabyMod-release.jar`
 
-Offline Cosmetics addresses this by mapping your offline session UUID to your Premium Minecraft UUID.
+</details>
 
-### Minecraft 1.21.9 and newer
+---
 
-Minecraft changed `GameProfile` into a record in 1.21.9, meaning the previous profile replacement approach could no longer be used.
+## ⚙️ Configuration
 
-For newer Minecraft versions, the addon creates a replacement profile containing the Premium UUID when the relevant player or tab-list entries are created.
+Offline Cosmetics integrates directly into LabyMod's native addon settings interface.
 
-Premium skin information is retrieved from Mojang in the background.
+You can independently control the addon and its individual modules without having to modify configuration files manually.
+
+| Setting | Description |
+|:---|:---|
+| **Addon enabled** | Completely enable or disable Offline Cosmetics. |
+| **Cosmetics** | Toggle the extraction and application of LabyMod cosmetics and emotes. |
+| **Skin** | Toggle the injection of authenticated Minecraft skin profiles. |
+
+This allows you to choose exactly how you want to use the addon:
+
+- Cosmetics only.
+- Premium skins only.
+- Both cosmetics and premium skins.
+- Completely disabled.
+
+<div align="center">
+
+<img width="850" alt="Offline Cosmetics settings" src="https://github.com/user-attachments/assets/12a857e3-efda-44aa-a61e-f6c00d138357">
+
+<sub>Offline Cosmetics integrated directly into LabyMod's settings interface.</sub>
+
+</div>
+
+---
+
+## 🔍 How It Works
+
+### Profile and UUID Mapping
+
+Minecraft offline-mode servers generate player UUIDs independently of Mojang's authenticated account system.
+
+Normally, this prevents LabyMod from associating your offline player profile with your actual Premium Minecraft account.
+
+Offline Cosmetics addresses this by mapping your offline session UUID to your authenticated Minecraft UUID.
+
+Using this mapping, the addon can retrieve the associated account information and apply the relevant profile data locally.
+
+### Minecraft 1.21.9 and Newer
+
+Minecraft 1.21.9 introduced a significant change to the `GameProfile` implementation, converting it into a record.
+
+This meant that the previous profile replacement approach could no longer be used.
+
+To accommodate this change, newer implementations create replacement profiles containing the authenticated Minecraft UUID when relevant player and tab-list entries are created.
+
+Premium skin information is then retrieved from Mojang in the background.
 
 ### Minecraft 26.x
 
-The 26.x implementations use separate version-specific source directories.
+Minecraft 26.x implementations use separate version-specific source directories to accommodate newer game changes and compatibility requirements.
 
-These implementations handle the profile mapping and related compatibility changes required by the newer Minecraft versions.
+These implementations handle the necessary profile mapping and related version-specific behaviour.
 
-The version-specific implementations are located in:
+You can find them under:
 
 `game-runner/src/v26_*/`
 
-## Settings
-
-Offline Cosmetics provides configurable settings that allow you to choose which features are active.
-
-You can configure:
-
-- **Addon enabled:** Enable or disable Offline Cosmetics.
-- **Cosmetics:** Restore LabyMod cosmetics.
-- **Skin:** Restore your Premium Minecraft skin.
-
-You can choose to use cosmetics only, skin restoration only, or both.
-
-<img width="1049" height="507" alt="Offline Cosmetics settings" src="https://github.com/user-attachments/assets/12a857e3-efda-44aa-a61e-f6c00d138357" />
-
 ---
 
-## Building From Source
+## 🛠️ Building From Source
+
+Want to compile Offline Cosmetics yourself or contribute to development?
+
+You can build the project locally using Gradle.
 
 ### Requirements
 
-- JDK 25
-- Git
-- Internet connection for Gradle dependencies
-- Windows, Linux or macOS
+- **JDK 25** or newer.
+- **Git** command-line tools.
+- An active internet connection for Gradle dependency downloads.
+- Windows, Linux or macOS.
 
-Minecraft 26.1 and newer require Java 25. The project also contains older Minecraft implementations, with their respective compilation requirements handled by the Gradle configuration.
+> [!NOTE]
+> Minecraft 26.1 and newer require Java 25. Older Minecraft implementations have their respective compilation requirements handled by the project's Gradle configuration.
 
-### Clone the repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/notfuz/Offline-Cosmetics.git
 cd Offline-Cosmetics
 ```
 
-### Build the production addon
+### 2. Build the project
 
-On Windows PowerShell:
+**Windows (PowerShell / CMD)**
 
 ```powershell
 .\gradlew.bat build
 .\gradlew.bat createReleaseJar
 ```
 
-On Linux or macOS:
+**Linux / macOS**
 
 ```bash
 chmod +x gradlew
@@ -114,79 +182,106 @@ chmod +x gradlew
 ./gradlew createReleaseJar
 ```
 
-The finished production addon is generated in:
+### 3. Locate the production JAR
 
-`build/libs/`
+Once Gradle finishes successfully, the production addon will be generated in:
 
-The production JAR ends in `-release.jar`.
+```text
+build/libs/OfflineCosmeticsLabyMod-release.jar
+```
 
-For example:
-
-`OfflineCosmeticsLabyMod-release.jar`
-
-**Important:** Do not install the intermediate `api`, `core`, `game-runner`, combined or development JARs. Only use the finished release JAR.
+This is the finished JAR you can install directly into your LabyMod `addons` directory.
 
 ---
 
-## Automated Builds and Releases
+## 🤖 Automated Builds & Releases
 
-This repository uses GitHub Actions to automatically compile and package Offline Cosmetics.
+This repository uses **GitHub Actions** to automate compilation, verification and production releases.
 
-The workflow is located at:
+The workflow is maintained in:
 
 `.github/workflows/build.yml`
 
-### Automatic builds
+### Continuous Integration
 
-A build is triggered when:
+Build verification runs automatically when:
 
 - Code is pushed to `main` or `master`.
-- A pull request is opened against `main` or `master`.
-- A workflow is manually started using GitHub Actions.
+- A pull request targets `main` or `master`.
+- A workflow is manually triggered through GitHub Actions.
 
-Every successful build uploads the production release JAR as a downloadable GitHub Actions artifact.
+Successful builds generate downloadable production JAR artifacts.
 
-### Publishing a release
+### Publishing a Release
 
-To publish a new release, create and push a version tag.
+Production releases are generated using Git version tags.
 
-For example:
+To publish a new version, create and push a version tag:
 
 ```bash
 git tag v1.1.0
 git push origin v1.1.0
 ```
 
-The workflow will:
+GitHub Actions will automatically:
 
-1. Read the version from the Git tag.
-2. Build the addon using that version.
-3. Generate the production release JAR.
-4. Upload the JAR as a GitHub Actions artifact.
-5. Create a GitHub Release and attach the finished JAR.
+1. Detect the pushed version tag.
+2. Extract the addon version from the tag.
+3. Compile the project using the release version.
+4. Generate the production release JAR.
+5. Upload the compiled JAR as a build artifact.
+6. Create a GitHub Release and attach the finished JAR.
 
-The version tag determines the addon version. For example, `v1.1.0` produces addon version `1.1.0`.
+For example:
 
----
+| Git Tag | Addon Version |
+|:---|:---|
+| `v1.0.0` | `1.0.0` |
+| `v1.1.0` | `1.1.0` |
+| `v2.0.0` | `2.0.0` |
 
-## Credits and Attribution
-
-**Original project:** [Xqedii/Offline-Cosmetics](https://github.com/Xqedii/Offline-Cosmetics)
-
-Offline Cosmetics is based on the original work by **Xqedii**. This repository is a fork that builds upon the original implementation, with additional development, compatibility work, Minecraft version support and maintenance.
-
-All credit for the original project and its foundational implementation belongs to Xqedii.
-
-Please visit the original repository to support the original author and view the upstream project.
-
-**Xqedii** is very aware that this repository exists! I have dm'ed him personally to know if its ok to continue his work!
+This keeps the release process consistent and removes the need to manually compile and upload production builds.
 
 ---
 
-## Disclaimer
+## 🤝 Credits & Attribution
 
-This is an unofficial community-made LabyMod addon. It is not affiliated with, endorsed by or maintained by LabyMod, Mojang or Microsoft.
+Offline Cosmetics is based on the original project developed by **Xqedii**.
+
+**Original repository:** [Xqedii/Offline-Cosmetics](https://github.com/Xqedii/Offline-Cosmetics)
+
+This repository is a continuation of that original work, with additional development, maintenance, compatibility improvements and support for newer Minecraft versions.
+
+The original implementation and foundational architecture belong to **Xqedii**.
+
+I've also personally contacted Xqedii to discuss continuing development of the project, and he is aware of this repository.
+
+Please consider visiting the original repository and supporting the original author!
+
+---
+
+## ⚖️ Disclaimer
+
+LabyMod Offline Cosmetics is an unofficial, community-developed client-side addon.
+
+This project is **not affiliated with, endorsed by, or maintained by LabyMod, Mojang Studios or Microsoft**.
 
 Minecraft is a trademark of Microsoft Corporation.
 
-Use of this addon is client-side and does not modify the server's authentication system.
+All profile mapping and cosmetic restoration operations are performed client-side. This addon does not modify the authentication configuration or authentication framework of the server you connect to.
+
+---
+
+<div align="center">
+
+**LabyMod Offline Cosmetics**
+
+*Keeping your cosmetics close, even when playing offline.*
+
+<br>
+
+[**Download Latest Release**](../../releases/latest) · [**Report an Issue**](../../issues) · [**View Source Code**](../../)
+
+<sub>Developed and maintained by <a href="https://github.com/notfuz">notfuz</a></sub>
+
+</div>
