@@ -3,6 +3,7 @@ package dev.xqedii.v26_3;
 import com.mojang.authlib.GameProfile;
 import dev.xqedii.core.Configuration;
 import dev.xqedii.core.OfflineCosmetics;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.UUID;
@@ -159,26 +160,54 @@ public final class ProfileMapper {
    */
   private static GameProfile fetchPremiumProfile(Minecraft minecraft, UUID profileId)
       throws ReflectiveOperationException {
-    Object services = call(minecraft, "services");
+    Object services = resolve(minecraft, "services");
 
-    Object session = call(minecraft, "getMinecraftSessionService");
+    Object session = resolve(minecraft, "getMinecraftSessionService", "minecraftSessionService");
     if (session == null && services != null) {
-      session = call(services, "sessionService");
+      session = resolve(services, "sessionService", "getSessionService");
     }
 
     GameProfile profile = null;
     if (session != null) {
       profile = toProfile(call(session, "fetchProfile", profileId, true), 0);
+      if (profile == null) {
+        profile = toProfile(call(session, "fetchProfile", profileId, false), 0);
+      }
     }
 
     if (profile == null && services != null) {
-      Object resolver = call(services, "profileResolver");
+      Object resolver = resolve(services, "profileResolver", "getProfileResolver");
       if (resolver != null) {
         profile = toProfile(call(resolver, "fetchById", profileId), 0);
+        if (profile == null) {
+          profile = toProfile(call(resolver, "fetchById", profileId, true), 0);
+        }
       }
     }
 
     return profile;
+  }
+
+  private static Object resolve(Object target, String... names) throws ReflectiveOperationException {
+    if (target == null) {
+      return null;
+    }
+
+    for (String name : names) {
+      Object value = call(target, name);
+      if (value != null) {
+        return value;
+      }
+
+      for (Field field : target.getClass().getFields()) {
+        if (field.getName().equals(name)) {
+          field.setAccessible(true);
+          return field.get(target);
+        }
+      }
+    }
+
+    return null;
   }
 
   /** Unwraps the result types ({@code Optional}, or a record exposing {@code profile()}). */

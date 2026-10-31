@@ -47,3 +47,17 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_21
     }
 }
+
+tasks.withType<org.gradle.api.tasks.bundling.Jar>().configureEach {
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
+}
+
+// The ordinary root JAR is only an intermediate artifact. LabyGradle's
+// createReleaseJar task is what combines core + all versioned game-runner
+// implementations into the single JAR that can be installed in LabyMod.
+tasks.register("buildRelease") {
+    group = "build"
+    description = "Builds the addon and creates the production-ready release JAR."
+    dependsOn("build")
+    finalizedBy("createReleaseJar")
+}
