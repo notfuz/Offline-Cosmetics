@@ -1,10 +1,10 @@
 package dev.xqedii.v26_3;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.minecraft.MinecraftSessionService;
-import com.mojang.authlib.yggdrasil.ProfileResult;
 import dev.xqedii.core.Configuration;
 import dev.xqedii.core.OfflineCosmetics;
+import java.lang.reflect.Method;
+import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
@@ -136,10 +136,11 @@ public final class ProfileMapper {
 
     Thread thread = new Thread(() -> {
       try {
-        MinecraftSessionService service = sessionService(minecraft);
-        ProfileResult result = service.fetchProfile(profileId, true);
-        if (result != null && result.profile() != null) {
-          premiumProfile = result.profile();
+        GameProfile profile = fetchPremiumProfile(minecraft, profileId);
+        if (profile != null) {
+          premiumProfile = profile;
+        } else {
+          warn("Could not load the premium profile: no session API matched");
         }
       } catch (Throwable throwable) {
         warn("Could not load the premium profile: " + throwable);
@@ -151,19 +152,100 @@ public final class ProfileMapper {
     thread.start();
   }
 
-  /** The accessor for the session service moved between Minecraft versions. */
-  private static MinecraftSessionService sessionService(Minecraft minecraft)
+  /**
+   * authlib 10 (Minecraft 26.3) renamed its yggdrasil package and moved the session classes, so
+   * nothing from there is referenced by name. The session service and the profile resolver are
+   * called by method name instead, and whichever answers first wins.
+   */
+  private static GameProfile fetchPremiumProfile(Minecraft minecraft, UUID profileId)
       throws ReflectiveOperationException {
-    try {
-      return (MinecraftSessionService) Minecraft.class
-          .getMethod("getMinecraftSessionService")
-          .invoke(minecraft);
-    } catch (NoSuchMethodException ignored) {
-      Object services = Minecraft.class.getMethod("services").invoke(minecraft);
-      return (MinecraftSessionService) services.getClass()
-          .getMethod("sessionService")
-          .invoke(services);
+    Object services = call(minecraft, "services");
+
+    Object session = call(minecraft, "getMinecraftSessionService");
+    if (session == null && services != null) {
+      session = call(services, "sessionService");
     }
+
+    GameProfile profile = null;
+    if (session != null) {
+      profile = toProfile(call(session, "fetchProfile", profileId, true), 0);
+    }
+
+    if (profile == null && services != null) {
+      Object resolver = call(services, "profileResolver");
+      if (resolver != null) {
+        profile = toProfile(call(resolver, "fetchById", profileId), 0);
+      }
+    }
+
+    return profile;
+  }
+
+  /** Unwraps the result types ({@code Optional}, or a record exposing {@code profile()}). */
+  private static GameProfile toProfile(Object result, int depth) throws ReflectiveOperationException {
+    if (result == null || depth > 3) {
+      return null;
+    }
+
+    if (result instanceof GameProfile profile) {
+      return profile;
+    }
+
+    if (result instanceof Optional<?> optional) {
+      return toProfile(optional.orElse(null), depth + 1);
+    }
+
+    return toProfile(call(result, "profile"), depth + 1);
+  }
+
+  /** Calls a public method by name and argument count, or returns null if there is none. */
+  private static Object call(Object target, String name, Object... args)
+      throws ReflectiveOperationException {
+    for (Method method : target.getClass().getMethods()) {
+      if (!method.getName().equals(name) || method.getParameterCount() != args.length) {
+        continue;
+      }
+
+      Class<?>[] types = method.getParameterTypes();
+      boolean matches = true;
+      for (int index = 0; index < types.length; index++) {
+        if (!wrap(types[index]).isInstance(args[index])) {
+          matches = false;
+          break;
+        }
+      }
+
+      if (matches) {
+        try {
+          method.setAccessible(true);
+        } catch (RuntimeException ignored) {
+          // The method is public, calling it works without this.
+        }
+        return method.invoke(target, args);
+      }
+    }
+
+    return null;
+  }
+
+  private static Class<?> wrap(Class<?> type) {
+    if (!type.isPrimitive()) {
+      return type;
+    }
+
+    if (type == boolean.class) {
+      return Boolean.class;
+    }
+
+    if (type == int.class) {
+      return Integer.class;
+    }
+
+    if (type == long.class) {
+      return Long.class;
+    }
+
+    return type;
   }
 
   private static Configuration configuration() {
