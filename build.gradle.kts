@@ -29,6 +29,8 @@ labyMod {
         description = "Restores client-side visibility of cosmetics on cracked servers."
         minecraftVersion = "*"
         version = rootProject.version.toString()
+
+        iconPath("assets/offlinecosmetics/icon.png") 
     }
 }
 
