@@ -30,7 +30,7 @@ labyMod {
         minecraftVersion = "*"
         version = rootProject.version.toString()
 
-        iconPath("assets/offlinecosmetics/icon.png") 
+        iconPath("assets/xqedii/icon.png") 
     }
 }
 
