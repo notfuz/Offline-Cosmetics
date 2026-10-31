@@ -27,11 +27,8 @@ The addon works by mapping your offline session UUID to your Premium Minecraft U
 | Minecraft version | Support |
 |---|---|
 | 1.8.9 – 1.21.8 | Supported, with listed exceptions |
-| 26.1 | Supported |
-| 26.1.1 | Supported |
-| 26.1.2 | Supported |
-| 26.2 | Supported |
-| 26.3 | Supported |
+| 26.1 - 26.3 | Supported |
+| 1.21.9 - 1.21.11 | Still thinking if support is really needed |
 
 **Known limitations:**
 
