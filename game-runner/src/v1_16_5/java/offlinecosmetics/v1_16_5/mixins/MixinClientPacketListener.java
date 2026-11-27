@@ -1,12 +1,13 @@
 package offlinecosmetics.v1_16_5.mixins;
 
 import com.mojang.authlib.GameProfile;
-import offlinecosmetics.core.OfflineCosmetics;
-import java.lang.reflect.Field;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundLoginPacket;
+import offlinecosmetics.core.OfflineCosmetics;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -15,23 +16,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ClientPacketListener.class)
 public abstract class MixinClientPacketListener {
 
-  @Shadow public abstract GameProfile getLocalGameProfile();
+  @Shadow @Final @Mutable private GameProfile localGameProfile;
 
   @Inject(method = "handleLogin", at = @At("HEAD"))
   private void onHandleLogin(ClientboundLoginPacket packet, CallbackInfo ci) {
-    if (!OfflineCosmetics.get().configuration().enabled().get()) return;
-    if (!OfflineCosmetics.get().configuration().showCosmetics().get()) return;
+    OfflineCosmetics addon = OfflineCosmetics.get();
+    if (addon == null) return;
+    if (!addon.configuration().enabled().get()) return;
+    if (!addon.configuration().showCosmetics().get()) return;
 
-    GameProfile profile = this.getLocalGameProfile();
+    GameProfile profile = this.localGameProfile;
     var user = Minecraft.getInstance().getUser();
+    if (profile == null || user == null) return;
+    if (!user.getName().equals(profile.getName())) return;
 
-    if (profile != null && user != null && user.getName().equals(profile.getName())) {
-      try {
-        Field idField = GameProfile.class.getDeclaredField("id");
-        idField.setAccessible(true);
+    var premiumId = user.getGameProfile().getId();
+    if (premiumId == null) return;
 
-        idField.set(profile, user.getGameProfile().getId());
-      } catch (Exception ignored) {}
-    }
+    GameProfile mapped = new GameProfile(premiumId, profile.getName());
+    mapped.getProperties().putAll(profile.getProperties());
+    this.localGameProfile = mapped;
   }
 }

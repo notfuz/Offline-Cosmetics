@@ -1,34 +1,36 @@
 package offlinecosmetics.v1_12_2.mixins;
 
 import com.mojang.authlib.GameProfile;
-import offlinecosmetics.core.OfflineCosmetics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
+import offlinecosmetics.core.OfflineCosmetics;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import java.lang.reflect.Field;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
+/** Player list entries carry the profile the skin is resolved from. */
 @Mixin(NetworkPlayerInfo.class)
 public abstract class MixinNetworkPlayerInfo {
 
-    @Inject(method = "<init>(Lcom/mojang/authlib/GameProfile;)V", at = @At("RETURN"))
-    private void onInit(GameProfile profile, CallbackInfo ci) {
-        if (profile == null) return;
+  @ModifyVariable(
+      method = "<init>(Lcom/mojang/authlib/GameProfile;)V",
+      at = @At("HEAD"),
+      argsOnly = true
+  )
+  private static GameProfile offlinecosmetics$mapProfile(GameProfile profile) {
+    if (profile == null) return profile;
 
-        OfflineCosmetics addon = OfflineCosmetics.get();
-        if (addon == null || !addon.configuration().enabled().get() || !addon.configuration().showCosmetics().get()) {
-            return;
-        }
-
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc.getSession().getUsername().equalsIgnoreCase(profile.getName())) {
-            try {
-                Field idField = GameProfile.class.getDeclaredField("id");
-                idField.setAccessible(true);
-                idField.set(profile, mc.getSession().getProfile().getId());
-            } catch (Exception ignored) {}
-        }
+    OfflineCosmetics addon = OfflineCosmetics.get();
+    if (addon == null || !addon.configuration().enabled().get() || !addon.configuration().showCosmetics().get()) {
+      return profile;
     }
+
+    Minecraft mc = Minecraft.getMinecraft();
+    if (mc.getSession() == null || mc.getSession().getProfile() == null) return profile;
+    if (!mc.getSession().getUsername().equalsIgnoreCase(profile.getName())) return profile;
+
+    GameProfile mapped = new GameProfile(mc.getSession().getProfile().getId(), profile.getName());
+    mapped.getProperties().putAll(profile.getProperties());
+    return mapped;
+  }
 }

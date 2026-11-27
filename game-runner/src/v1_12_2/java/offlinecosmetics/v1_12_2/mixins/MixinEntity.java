@@ -1,6 +1,7 @@
 package offlinecosmetics.v1_12_2.mixins;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.entity.Entity;
 import offlinecosmetics.core.OfflineCosmetics;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,6 +18,11 @@ public abstract class MixinEntity {
 
   @Inject(method = "getUniqueID", at = @At("HEAD"), cancellable = true)
   private void onGetUniqueID(CallbackInfoReturnable<UUID> cir) {
+    // Only players can be the local user, skip every other entity before doing any work.
+    if (!((Object) this instanceof AbstractClientPlayer)) {
+      return;
+    }
+
     OfflineCosmetics addon = OfflineCosmetics.get();
 
     if (addon == null || !addon.configuration().enabled().get() || !addon.configuration().showCosmetics().get()) {

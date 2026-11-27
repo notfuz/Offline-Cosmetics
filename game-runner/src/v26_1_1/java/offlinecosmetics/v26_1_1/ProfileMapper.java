@@ -151,19 +151,8 @@ public final class ProfileMapper {
     thread.start();
   }
 
-  /** The accessor for the session service moved between Minecraft versions. */
-  private static MinecraftSessionService sessionService(Minecraft minecraft)
-      throws ReflectiveOperationException {
-    try {
-      return (MinecraftSessionService) Minecraft.class
-          .getMethod("getMinecraftSessionService")
-          .invoke(minecraft);
-    } catch (NoSuchMethodException ignored) {
-      Object services = Minecraft.class.getMethod("services").invoke(minecraft);
-      return (MinecraftSessionService) services.getClass()
-          .getMethod("sessionService")
-          .invoke(services);
-    }
+  private static MinecraftSessionService sessionService(Minecraft minecraft) {
+    return minecraft.services().sessionService();
   }
 
   private static Configuration configuration() {

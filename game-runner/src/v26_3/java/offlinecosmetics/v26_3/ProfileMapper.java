@@ -3,9 +3,6 @@ package offlinecosmetics.v26_3;
 import com.mojang.authlib.GameProfile;
 import offlinecosmetics.core.Configuration;
 import offlinecosmetics.core.OfflineCosmetics;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
@@ -141,7 +138,7 @@ public final class ProfileMapper {
         if (profile != null) {
           premiumProfile = profile;
         } else {
-          warn("Could not load the premium profile: no session API matched");
+          warn("Could not load the premium profile: the session service returned nothing");
         }
       } catch (Throwable throwable) {
         warn("Could not load the premium profile: " + throwable);
@@ -154,127 +151,12 @@ public final class ProfileMapper {
   }
 
   /**
-   * authlib 10 (Minecraft 26.3) renamed its yggdrasil package and moved the session classes, so
-   * nothing from there is referenced by name. The session service and the profile resolver are
-   * called by method name instead, and whichever answers first wins.
+   * authlib 10 moved the session result classes to other packages, so the result is kept as
+   * {@code var} instead of being named.
    */
-  private static GameProfile fetchPremiumProfile(Minecraft minecraft, UUID profileId)
-      throws ReflectiveOperationException {
-    Object services = resolve(minecraft, "services");
-
-    Object session = resolve(minecraft, "getMinecraftSessionService", "minecraftSessionService");
-    if (session == null && services != null) {
-      session = resolve(services, "sessionService", "getSessionService");
-    }
-
-    GameProfile profile = null;
-    if (session != null) {
-      profile = toProfile(call(session, "fetchProfile", profileId, true), 0);
-      if (profile == null) {
-        profile = toProfile(call(session, "fetchProfile", profileId, false), 0);
-      }
-    }
-
-    if (profile == null && services != null) {
-      Object resolver = resolve(services, "profileResolver", "getProfileResolver");
-      if (resolver != null) {
-        profile = toProfile(call(resolver, "fetchById", profileId), 0);
-        if (profile == null) {
-          profile = toProfile(call(resolver, "fetchById", profileId, true), 0);
-        }
-      }
-    }
-
-    return profile;
-  }
-
-  private static Object resolve(Object target, String... names) throws ReflectiveOperationException {
-    if (target == null) {
-      return null;
-    }
-
-    for (String name : names) {
-      Object value = call(target, name);
-      if (value != null) {
-        return value;
-      }
-
-      for (Field field : target.getClass().getFields()) {
-        if (field.getName().equals(name)) {
-          field.setAccessible(true);
-          return field.get(target);
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /** Unwraps the result types ({@code Optional}, or a record exposing {@code profile()}). */
-  private static GameProfile toProfile(Object result, int depth) throws ReflectiveOperationException {
-    if (result == null || depth > 3) {
-      return null;
-    }
-
-    if (result instanceof GameProfile profile) {
-      return profile;
-    }
-
-    if (result instanceof Optional<?> optional) {
-      return toProfile(optional.orElse(null), depth + 1);
-    }
-
-    return toProfile(call(result, "profile"), depth + 1);
-  }
-
-  /** Calls a public method by name and argument count, or returns null if there is none. */
-  private static Object call(Object target, String name, Object... args)
-      throws ReflectiveOperationException {
-    for (Method method : target.getClass().getMethods()) {
-      if (!method.getName().equals(name) || method.getParameterCount() != args.length) {
-        continue;
-      }
-
-      Class<?>[] types = method.getParameterTypes();
-      boolean matches = true;
-      for (int index = 0; index < types.length; index++) {
-        if (!wrap(types[index]).isInstance(args[index])) {
-          matches = false;
-          break;
-        }
-      }
-
-      if (matches) {
-        try {
-          method.setAccessible(true);
-        } catch (RuntimeException ignored) {
-          // The method is public, calling it works without this.
-        }
-        return method.invoke(target, args);
-      }
-    }
-
-    return null;
-  }
-
-  private static Class<?> wrap(Class<?> type) {
-    if (!type.isPrimitive()) {
-      return type;
-    }
-
-    if (type == boolean.class) {
-      return Boolean.class;
-    }
-
-    if (type == int.class) {
-      return Integer.class;
-    }
-
-    if (type == long.class) {
-      return Long.class;
-    }
-
-    return type;
+  private static GameProfile fetchPremiumProfile(Minecraft minecraft, UUID profileId) {
+    var result = minecraft.services().sessionService().fetchProfile(profileId, true);
+    return result == null ? null : result.profile();
   }
 
   private static Configuration configuration() {

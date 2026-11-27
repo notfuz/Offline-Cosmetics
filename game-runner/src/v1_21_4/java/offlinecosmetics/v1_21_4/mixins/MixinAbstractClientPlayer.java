@@ -79,7 +79,10 @@ public abstract class MixinAbstractClientPlayer extends Player {
               isProfileLoading = false;
             }
           } catch (Exception e) {
-            e.printStackTrace();
+            OfflineCosmetics addon = OfflineCosmetics.get();
+            if (addon != null) {
+              addon.logger().warn("Could not load the premium profile: " + e);
+            }
             isProfileLoading = false;
           }
         });

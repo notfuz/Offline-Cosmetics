@@ -1,31 +1,36 @@
 package offlinecosmetics.v1_20_1.mixins;
 
 import com.mojang.authlib.GameProfile;
-import offlinecosmetics.core.OfflineCosmetics;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.PlayerInfo; // Nowa paczka
+import net.minecraft.client.multiplayer.PlayerInfo;
+import offlinecosmetics.core.OfflineCosmetics;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import java.lang.reflect.Field;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
+/** Player list entries carry the profile the skin is resolved from. */
 @Mixin(PlayerInfo.class)
 public abstract class MixinNetworkPlayerInfo {
 
-  @Inject(method = "<init>(Lcom/mojang/authlib/GameProfile;Z)V", at = @At("RETURN"))
-  private void onInit(GameProfile profile, boolean listed, CallbackInfo ci) {
-    if (profile == null) return;
-    if (!OfflineCosmetics.get().configuration().enabled().get()) return;
-    if (!OfflineCosmetics.get().configuration().showCosmetics().get()) return;
+  @ModifyVariable(
+      method = "<init>(Lcom/mojang/authlib/GameProfile;Z)V",
+      at = @At("HEAD"),
+      argsOnly = true
+  )
+  private static GameProfile offlinecosmetics$mapProfile(GameProfile profile) {
+    if (profile == null) return profile;
 
-    Minecraft mc = Minecraft.getInstance();
-    if (mc.getUser().getName().equals(profile.getName())) {
-      try {
-        Field idField = GameProfile.class.getDeclaredField("id");
-        idField.setAccessible(true);
-        idField.set(profile, mc.getUser().getProfileId());
-      } catch (Exception ignored) {}
-    }
+    OfflineCosmetics addon = OfflineCosmetics.get();
+    if (addon == null) return profile;
+    if (!addon.configuration().enabled().get()) return profile;
+    if (!addon.configuration().showCosmetics().get()) return profile;
+
+    var user = Minecraft.getInstance().getUser();
+    if (user == null || user.getProfileId() == null) return profile;
+    if (!user.getName().equals(profile.getName())) return profile;
+
+    GameProfile mapped = new GameProfile(user.getProfileId(), profile.getName());
+    mapped.getProperties().putAll(profile.getProperties());
+    return mapped;
   }
 }

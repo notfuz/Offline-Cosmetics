@@ -27,6 +27,8 @@ public abstract class MixinAbstractClientPlayer extends Player {
   private GameProfile fetchedProfile;
   @Unique
   private boolean isProfileLoading = false;
+  @Unique
+  private long nextFetchAttemptAt = 0L;
 
   @Inject(method = "getSkin", at = @At("HEAD"), cancellable = true)
   private void onGetSkin(CallbackInfoReturnable<PlayerSkin> cir) {
@@ -58,7 +60,7 @@ public abstract class MixinAbstractClientPlayer extends Player {
         return;
       }
 
-      if (!isProfileLoading) {
+      if (!isProfileLoading && System.currentTimeMillis() >= nextFetchAttemptAt) {
         isProfileLoading = true;
         final var profileId = sessionUser.getProfileId();
 
@@ -70,15 +72,22 @@ public abstract class MixinAbstractClientPlayer extends Player {
                 this.fetchedProfile = result.profile();
                 mc.getSkinManager().getInsecureSkin(this.fetchedProfile);
               });
+            } else {
+              mc.execute(this::offlinecosmetics$scheduleRetry);
             }
           } catch (Exception e) {
-            mc.execute(() -> {
-              this.fetchedProfile = new GameProfile(profileId, sessionUser.getName());
-              isProfileLoading = false;
-            });
+            addon.logger().warn("Could not load the premium profile: " + e);
+            mc.execute(this::offlinecosmetics$scheduleRetry);
           }
         });
       }
     }
+  }
+
+  /** A failed fetch is retried after a delay instead of being stored as a profile without textures. */
+  @Unique
+  private void offlinecosmetics$scheduleRetry() {
+    this.isProfileLoading = false;
+    this.nextFetchAttemptAt = System.currentTimeMillis() + 60_000L;
   }
 }

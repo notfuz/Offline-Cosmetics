@@ -1,41 +1,38 @@
 package offlinecosmetics.v1_16_5.mixins;
 
 import com.mojang.authlib.GameProfile;
-import offlinecosmetics.core.OfflineCosmetics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
+import offlinecosmetics.core.OfflineCosmetics;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.lang.reflect.Field;
-
 @Mixin(PlayerInfo.class)
 public abstract class MixinPlayerInfo {
 
-  @Shadow @Final private GameProfile profile;
+  @Shadow @Final @Mutable private GameProfile profile;
 
   @Inject(method = "<init>", at = @At("RETURN"))
   private void onInit(CallbackInfo ci) {
     GameProfile currentProfile = this.profile;
     if (currentProfile == null) return;
 
-    if (!OfflineCosmetics.get().configuration().enabled().get()) return;
-    if (!OfflineCosmetics.get().configuration().showCosmetics().get()) return;
+    OfflineCosmetics addon = OfflineCosmetics.get();
+    if (addon == null) return;
+    if (!addon.configuration().enabled().get()) return;
+    if (!addon.configuration().showCosmetics().get()) return;
 
-    try {
-      Minecraft mc = Minecraft.getInstance();
-      var user = mc.getUser();
+    var user = Minecraft.getInstance().getUser();
+    if (user == null || user.getGameProfile() == null) return;
+    if (!user.getName().equals(currentProfile.getName())) return;
 
-      if (user != null && user.getName().equals(currentProfile.getName())) {
-        Field idField = GameProfile.class.getDeclaredField("id");
-        idField.setAccessible(true);
-
-        idField.set(currentProfile, user.getGameProfile().getId());
-      }
-    } catch (Exception ignored) {}
+    GameProfile mapped = new GameProfile(user.getGameProfile().getId(), currentProfile.getName());
+    mapped.getProperties().putAll(currentProfile.getProperties());
+    this.profile = mapped;
   }
 }
